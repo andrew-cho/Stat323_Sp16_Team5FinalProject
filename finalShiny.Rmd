@@ -1,0 +1,398 @@
+---
+title: "Visualizing 2016 Primary Election Result"
+author: Wenqi Cheng, Andrew Cho, Kshipra Hemal, Liaowang Zou
+output: html_document
+runtime: shiny
+---
+### Project Overview
+
+### PART I - Scrape / Parse 
+
+``` {r}
+suppressMessages(library(rvest))
+suppressMessages(library(magrittr))
+suppressMessages(library(dplyr))
+suppressMessages(library(stringr)) 
+suppressMessages(library(maps))
+
+url = "http://www.politico.com/2016-election/results/map/president"
+
+page = read_html(url)
+
+states = page %>% html_nodes(".timeline-header a") %>% html_text(trim = T)
+
+data = page %>% html_nodes("h5 , h6 , .number , .name-combo , .timeline-header a,.delegates-cell") %>% html_text(trim = T)
+
+get_position = function(x){
+  result = which(data == x)
+  return (result)
+}
+index = sapply(states, get_position)
+
+Dele.Clinton = c()
+Dele.Trump = c()
+Dele.sanders = c()
+Dele.Tcruz = c()
+Dele.Jkasich = c()
+
+H.Clinton = c()
+D.Trump = c()
+B.sanders = c()
+Tcruz = c()
+Jkasich = c()
+
+Win_Demo = c()
+Win_Repu = c()
+
+for(i in seq_along(index)){
+  if(i<length(index)){
+    sub_data = data[index[i]:(index[i+1]-1)]
+  }else{
+    sub_data = data[index[i]:length(data)]
+  }
+  
+  boolean_clinton = T
+  boolean_trump = T
+  boolean_sanders = T
+  boolean_cruz = T
+  boolean_kasich = T
+  
+  boolean_demo = T
+  boolean_repu = T
+  
+  for(i in seq_along(sub_data)){
+    if(sub_data[i] == "Democratic"){
+      boolean_demo = F
+      Win_Demo = append(Win_Demo, sub_data[i+1])
+    }
+    
+    if(sub_data[i] == "Republican"){
+      boolean_repu = F
+      Win_Repu = append(Win_Repu, sub_data[i+1])
+    }
+    
+    if(grepl("H. Clinton",sub_data[i])){
+      boolean_clinton = F
+      
+      percentage = as.numeric(sub("%","",sub_data[i+1]))/100
+      H.Clinton = append(H.Clinton, percentage)
+      
+      if(sub_data[i+2] != ""){
+        delegate = as.numeric(sub_data[i+2])
+        Dele.Clinton = append(Dele.Clinton, delegate)
+      }else{
+        Dele.Clinton = append(Dele.Clinton, 0)
+      }
+    }
+    
+    if(grepl("D. Trump",sub_data[i])){
+      boolean_trump = F
+      
+      percentage = as.numeric(sub("%","",sub_data[i+1]))/100
+      D.Trump = append(D.Trump, percentage) 
+      
+      if(sub_data[i+2] != ""){
+        delegate = as.numeric(sub_data[i+2])
+        Dele.Trump = append(Dele.Trump, delegate)
+      }else{
+        Dele.Trump = append(Dele.Trump, 0)
+      }
+    }
+    
+    if(grepl("B. Sanders",sub_data[i])){
+      boolean_sanders = F
+      
+      percentage = as.numeric(sub("%","",sub_data[i+1]))/100
+      B.sanders = append(B.sanders, percentage) 
+      
+      if(sub_data[i+2] != ""){
+        delegate = as.numeric(sub_data[i+2])
+        Dele.sanders = append(Dele.sanders, delegate)
+      }else{
+        Dele.sanders = append(Dele.sanders, 0)
+      }
+    }
+    
+    if(grepl("T. Cruz",sub_data[i])){
+      boolean_cruz = F
+      
+      percentage = as.numeric(sub("%","",sub_data[i+1]))/100
+      Tcruz = append(Tcruz, percentage) 
+      
+      if(sub_data[i+2] != ""){
+        delegate = as.numeric(sub_data[i+2])
+        Dele.Tcruz = append(Dele.Tcruz, delegate)
+      }else{
+        Dele.Tcruz = append(Dele.Tcruz, 0)
+      }
+    }
+    
+    if(grepl("J. Kasich",sub_data[i])){
+      boolean_kasich = F
+      
+      percentage = as.numeric(sub("%","",sub_data[i+1]))/100
+      Jkasich = append(Jkasich, percentage) 
+      
+      if(sub_data[i+2] != ""){
+        delegate = as.numeric(sub_data[i+2])
+        Dele.Jkasich = append(Dele.Jkasich, delegate)
+      }else{
+        Dele.Jkasich = append(Dele.Jkasich, 0)
+      }
+    }
+  }
+  
+  if(boolean_clinton){
+    H.Clinton = append(H.Clinton, 0)
+    Dele.Clinton = append(Dele.Clinton, 0)
+  }
+  if(boolean_trump){
+    D.Trump = append(D.Trump, 0)
+    Dele.Trump = append(Dele.Trump, 0)
+  }
+  if(boolean_sanders){
+    B.sanders = append(B.sanders, 0)
+    Dele.sanders = append(Dele.sanders, 0)
+  }
+  if(boolean_cruz){
+    Tcruz = append(Tcruz, 0)
+    Dele.Tcruz = append(Dele.Tcruz, 0)
+  }
+  if(boolean_kasich){
+    Jkasich = append(Jkasich, 0)
+    Dele.Jkasich = append(Dele.Jkasich, 0)
+  }
+  if(boolean_repu){
+    Win_Repu = append(Win_Repu, "Result Coming soon")
+  }
+  if(boolean_demo){
+    Win_Demo = append(Win_Demo, "Result Coming soon")
+  }
+}
+
+df0 = data.frame(
+  state = states,
+  
+  clinton = H.Clinton,
+  Dele_Clinton = Dele.Clinton,
+  
+  trump = D.Trump,
+  Dele_Trump = Dele.Trump,
+  
+  sanders = B.sanders,
+  Dele_Sanders = Dele.sanders,
+  
+  cruz = Tcruz,
+  Dele_Cruz = Dele.Tcruz,
+  
+  kasich = Jkasich,
+  Dele_Kasich = Dele.Jkasich,
+  
+  D_win = Win_Demo,
+  R_win = Win_Repu,
+  
+  stringsAsFactors = F
+)
+
+states <- map("state", plot=FALSE, fill=TRUE)
+state.name <- as.data.frame(states$names, stringsAsFactors = FALSE)
+colnames(state.name) <- "state"
+
+df0[,1] <- tolower(df0[,1])
+
+x <- left_join(state.name, df0, by="state")
+
+x$state2 = str_split(x$state, ":", 2)
+for(i in seq_along(x$state2)){
+  x$state2[i] <- x$state2[[i]][1]
+}
+
+for(i in seq_along(x$state2)){
+  for(j in seq_along(df0$state)){
+    if(x$state2[i] == df0$state[j]){
+      x[i,2:13] = df0[j,2:13]
+    }
+  }
+}
+
+df = x
+```
+
+### Part II- Make a Shiny Chloropleth Map
+The main output for this Shiny App is a chloropleth map of the United State. Users can first filter by parties, then select a candidate of interest. The map would display the percentage of support for that candidate in 2016 primary election by state. The darker the color, the higher the percentage of support. We also show the states in which the candidate won on top of the map. Finally, we include bar plots showing how many more delegates the candidates need in order to be nominated are also displayed. Because we choose the scrape the data from Politico's website, our App will automatically update its results whenever Politico updates.
+
+We first create the dataframes for the barplot of delegates. Because they are not reactive and does not depend on the user's input, we can create them outside of the Shiny App. To obtain the total delegate number for each candidate, we sum the number of delegates by state for each candidate. Note here we used the original dataframe `df0` instead of `df`, which is altered in order to fit the order of the "states" in map function. 
+
+To creating a chloropleth map , we use a helper function `percent_map` that utilize the map function in "maps" package. Our code is adapted from the Shiny tutorial [Link](http://shiny.rstudio.com/tutorial/lesson5/). 
+
+Finally, we piece every component together and create the Shiny App. Our work product is displayed below:
+
+```{r}
+## Load any packages 
+suppressMessages(library(shiny)) 
+suppressMessages(library(mapproj))
+
+## dataframes for running barplot (democrats)
+dem = c(sum(df0$Dele_Clinton,na.rm = TRUE),sum(df0$Dele_Sanders,na.rm = TRUE))
+names(dem) = c("Clinton", "Sanders")
+
+## dataframes for running barplot (republican)
+rep = c(sum(df0$Dele_Trump,na.rm = TRUE),sum(df0$Dele_Cruz,na.rm = TRUE),sum(df0$Dele_Kasich,na.rm = TRUE))
+names(rep) = c("Trump", "Cruz", "Kasich")
+
+## helper function in outputting the map
+percent_map = function(var, color, legend.title, min = 0, max = 100) {
+  # generate vector of fill colors for map
+  shades = colorRampPalette(c("white", color))(100)
+  # constrain gradient to percents that occur between min and max
+  var = pmax(var, min)
+  var = pmin(var, max)
+  percents = as.integer(cut(var, 100, 
+                            include.lowest = TRUE, ordered = TRUE))
+  fills = shades[percents]
+  # plot choropleth map
+  par(mar = c(0,0,0,0))
+  map("state", fill = TRUE, col = fills, 
+      resolution = 0, lty = 0, projection = "polyconic", 
+      myborder = 0, mar = c(0,0,0,0))
+  # overlay state borders
+  map("state", col = "gray", fill = FALSE, add = TRUE,
+      lty = 1, lwd = 1, projection = "polyconic", 
+      myborder = 0, mar = c(0,0,0,0))
+  # add a legend
+  inc = (max - min) / 4
+  legend.text = c(paste0(min, " % or less"),
+                  paste0(min + inc, " %"),
+                  paste0(min + 2 * inc, " %"),
+                  paste0(min + 3 * inc, " %"),
+                  paste0(max, " % or more"))
+  legend("bottomleft", 
+         legend = legend.text, 
+         fill = shades[c(1, 25, 50, 75, 100)], 
+         title = legend.title, bty = "n")
+}
+
+## App
+
+shinyApp(
+  ui = fluidPage(
+    tags$head(
+      tags$style(".leaflet-container { background-color: white !important; }"
+      )
+    ),
+    
+    # user first chooses Party, then the party affiliated candidate
+    sidebarPanel(
+      selectInput(inputId = "Party", label = "Select a political party:", 
+                  choices = c("Democratic", "Republican"),
+                  selected = "Democratic"),
+      br(),
+      uiOutput("candidate"), # output based on Party selection by user
+      # toggle on/off plot of running delegate counts
+      checkboxInput("yes_demdel", "Show Democratic Delegate Count", value = TRUE), 
+      checkboxInput("yes_repdel", "Show Republic Delegate Count", value = TRUE)
+    ),
+    
+    mainPanel(
+      textOutput("cand_won"),
+      tags$head(tags$style("#cand_won{font-size: 16px; 
+                                      font-weight: bold;
+                                      }"
+                           )
+                ),
+      br(),
+      textOutput("states_won"),
+      plotOutput("map"),
+      conditionalPanel(
+        condition = "input.yes_demdel == true",
+        plotOutput("demdel")
+      ),
+      conditionalPanel(
+        condition = "input.yes_repdel == true",
+        plotOutput("repdel")
+      )
+    )
+  ),  
+  
+  server = function(input, output, session){
+    # returns names of candidates based on user chosen party affiliation
+    candidates = reactive({
+      if(input$Party == "Republican"){
+        return(c("Trump", "Kasich", "Cruz"))
+      } else {
+        return(c("Clinton", "Sanders"))
+      }
+    })
+    
+    # takes user chosen party and displays corresponding candidates
+    output$candidate = renderUI({
+      selectInput("cand", "Candidate", 
+                  choices = candidates())
+    })
+    
+    # outputs states that a candidate has won
+    states = reactive({
+      if(input$Party=="Democratic"){
+        return(df$state2[str_detect(df$D_win, input$cand)])
+      } else{
+        return(df$state2[str_detect(df$R_win, input$cand)])
+      }
+    })
+    
+    output$cand_won = renderText({
+      paste("States that ", input$cand, "has won: ")
+    })
+    
+    # output$states_won = renderTable({
+    #   # vector of states won
+    #   st = unlist(unique(states()))
+    #   add = 7 - length(st) %% 7
+    #   st = st[!is.null(st)] %>% sapply(function(x) paste0(toupper(substr(x, 1, 1)), substr(x, 2, nchar(x)))) %>% c(rep(NA, add))
+    #   
+    #   # making the table
+    #   matrix(st, ncol = 7, byrow = TRUE)
+    # })
+    
+    output$states_won = renderText({
+      st = unlist(unique(states())) %>%
+        sapply(function(x) paste0(toupper(substr(x,1,1)), substr(x,2,nchar(x)))) 
+      paste(st,collapse = ", ")
+    })
+    
+    
+    # map of the voter results for a candidate. Darker color corresponds to higher % votes
+    output$map = renderPlot({
+      if (input$Party == "Democratic"){
+        percent_map(df[[tolower(input$cand)]], color = "royalblue", input$cand)
+      } else { # if Republican
+        percent_map(df[[tolower(input$cand)]], color = "red", input$cand)
+      }  
+    })
+    
+    # displays Republican candidate delegate counts
+    output$repdel = renderPlot({
+      par(mar = c(6,6,2,1))
+      graphrep = barplot(rep,main = "Republican Delegates", 
+              sub = "*1237 delegates needed to clinch party nomination", space= 0.5,
+              col=c("orange", "maroon", "gold"), xpd=T, cex.names = 0.95, xaxt = "n", las = 1,
+              border = NA, horiz = TRUE, xlim = c(0, 1500), ylim = c(0,1), width = rep(0.2, 3)) 
+      text(x = 80, y = graphrep, label = rep, cex= 1.5)
+      abline(v=1237, col = "red", lty = 2)
+    })
+    
+    # displays Democratic candidate delegate counts 
+    output$demdel = renderPlot({
+      par(mar = c(6,6,2,1))
+      graphdem = barplot(dem, main = "Democratic Delegates", 
+              sub = "*2383 delegates needed to clinch party nomination",
+              col=c("sky blue", "pale green"), cex.names = 0.95, xaxt = "n", las = 1, space = 0.5,
+              border = NA, horiz = TRUE,  xlim = c(0,2500), ylim = c(0,1), width = rep(0.25, 2))
+      text(x = 150, y = graphdem , label = dem, cex = 1.5)
+      abline(v=2383, col = "red", lty = 2)
+    })
+    
+  },
+  options = list(height = 500)
+)
+```
+
