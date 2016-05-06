@@ -140,16 +140,6 @@ shinyApp(
       paste("States that ", input$cand, "has won: ")
     })
     
-    # output$states_won = renderTable({
-    #   # vector of states won
-    #   st = unlist(unique(states()))
-    #   add = 7 - length(st) %% 7
-    #   st = st[!is.null(st)] %>% sapply(function(x) paste0(toupper(substr(x, 1, 1)), substr(x, 2, nchar(x)))) %>% c(rep(NA, add))
-    #   
-    #   # making the table
-    #   matrix(st, ncol = 7, byrow = TRUE)
-    # })
-    
     output$states_won = renderText({
       st = unlist(unique(states())) %>%
         sapply(function(x) paste0(toupper(substr(x,1,1)), substr(x,2,nchar(x)))) 
