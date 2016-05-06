@@ -21,6 +21,10 @@ Finally, we piece every component together and create the Shiny App. Our work pr
 ## Load any packages 
 suppressMessages(library(shiny)) 
 suppressMessages(library(mapproj))
+suppressMessages(library(magrittr))
+suppressMessages(library(dplyr))
+suppressMessages(library(stringr)) 
+suppressMessages(library(maps))
 
 ## dataframes for running barplot (democrats)
 dem = c(sum(df0$Dele_Clinton,na.rm = TRUE),sum(df0$Dele_Sanders,na.rm = TRUE))
