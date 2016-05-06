@@ -194,28 +194,26 @@ df0 = data.frame(
   stringsAsFactors = F
 )
 
-states <- map("state", plot=FALSE, fill=TRUE)
-state.name <- as.data.frame(states$names, stringsAsFactors = FALSE)
-colnames(state.name) <- "state"
+states = map("state", plot=FALSE, fill=TRUE)
+state.name = as.data.frame(states$names, stringsAsFactors = FALSE)
+colnames(state.name) = "state"
 
-df0[,1] <- tolower(df0[,1])
+df0[,1] = tolower(df0[,1])
 
-x <- left_join(state.name, df0, by="state")
+df = left_join(state.name, df0, by="state")
 
-x$state2 = str_split(x$state, ":", 2)
-for(i in seq_along(x$state2)){
-  x$state2[i] <- x$state2[[i]][1]
+df$state2 = str_split(df$state, ":", 2)
+for(i in seq_along(df$state2)){
+  df$state2[i] = df$state2[[i]][1]
 }
 
-for(i in seq_along(x$state2)){
+for(i in seq_along(df$state2)){
   for(j in seq_along(df0$state)){
-    if(x$state2[i] == df0$state[j]){
-      x[i,2:13] = df0[j,2:13]
+    if(df$state2[i] == df0$state[j]){
+      df[i,2:13] = df0[j,2:13]
     }
   }
 }
-
-df = x
 ```
 
 ### Part II- Make a Shiny Chloropleth Map
