@@ -163,24 +163,28 @@ shinyApp(
     output$repdel = renderPlot({
       par(mar = c(6,6,2,1))
       graphrep = barplot(rep,main = "Republican Delegates", 
-              sub = "*1237 delegates needed to clinch party nomination", space= 0.5,
+              space= 0.5,
               col=c("orange", "maroon", "gold"), xpd=T, cex.names = 0.95, xaxt = "n", las = 1,
               border = NA, horiz = TRUE, xlim = c(0, 1500), ylim = c(0,1), width = rep(0.2, 3)) 
       text(x = 80, y = graphrep, label = rep, cex= 1.5)
       abline(v=1237, col = "red", lty = 2)
+      legend("bottomleft", col = "red", lwd = 2, lty = 2,
+              legend = "*Delegates needed to win party nomination (1237)", 
+              bty = "n")
     })
     
     # displays Democratic candidate delegate counts 
     output$demdel = renderPlot({
       par(mar = c(6,6,2,1))
       graphdem = barplot(dem, main = "Democratic Delegates", 
-              sub = "*2383 delegates needed to clinch party nomination",
               col=c("sky blue", "pale green"), cex.names = 0.95, xaxt = "n", las = 1, space = 0.5,
               border = NA, horiz = TRUE,  xlim = c(0,2500), ylim = c(0,1), width = rep(0.25, 2))
       text(x = 150, y = graphdem , label = dem, cex = 1.5)
       abline(v=2383, col = "red", lty = 2)
+      legend("bottomleft", col = "red", lwd = 2, lty = 2,
+              legend = "*Delegates needed to win party nomination (2383)", bty = "n")
     })
-    
+  },
   },
   options = list(height = 500)
 )
