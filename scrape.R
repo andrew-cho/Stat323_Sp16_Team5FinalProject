@@ -165,6 +165,7 @@ for(i in seq_along(index)){
   }
 }
 
+# putting scraped data together into one data frame
 df0 = data.frame(
   state = states,
   
@@ -189,19 +190,29 @@ df0 = data.frame(
   stringsAsFactors = F
 )
 
+# retrieve the states listed under 'map' function (different from those from politico
+# so we had to match in order to plot the map correctly)
 states = map("state", plot=FALSE, fill=TRUE)
 state.name = as.data.frame(states$names, stringsAsFactors = FALSE)
 colnames(state.name) = "state"
 
+# make all state names lower case
 df0[,1] = tolower(df0[,1])
 
+# merges politico scraped data (df0) with the exact states listed under the maps package
+# 'maps' required data from "63" states to plot a map, so we had to expand our scraped 
+# data to fit to 'maps' format
 df = left_join(state.name, df0, by="state")
 
+# truncate off sub-regions of states 
+# ie) michigan:north -> michigan; michigan:south -> michigan
 df$state2 = str_split(df$state, ":", 2)
 for(i in seq_along(df$state2)){
   df$state2[i] = df$state2[[i]][1]
 }
 
+# matching and merging scraped df0 with 'maps' requirements
+# ie) copy michigan data to both michigan:north and michigan:south
 for(i in seq_along(df$state2)){
   for(j in seq_along(df0$state)){
     if(df$state2[i] == df0$state[j]){
