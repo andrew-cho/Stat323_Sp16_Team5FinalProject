@@ -17,35 +17,43 @@ states = page %>% html_nodes(".timeline-header a") %>% html_text(trim = T)
 #Scrape data, including names of states, candidates' name, percentage, delegates.
 data = page %>% html_nodes("h5 , h6 , .number , .name-combo , .timeline-header a,.delegates-cell") %>% html_text(trim = T)
 
-#Because our data is a long vector, we use get_position function to find out the index
+#Because our data is a long vector, we use get_position function to find out the indices of states' names
 get_position = function(x){
   result = which(data == x)
   return (result)
 }
 index = sapply(states, get_position)
 
+#We only scrae 5 candidates: Clinton, Trump, Sanders, Tcruz, Jkasich.
+#Store delegate data
 Dele.Clinton = c()
 Dele.Trump = c()
 Dele.sanders = c()
 Dele.Tcruz = c()
 Dele.Jkasich = c()
 
+#Store percentage data
 H.Clinton = c()
 D.Trump = c()
 B.sanders = c()
 Tcruz = c()
 Jkasich = c()
 
+#Store winner data
 Win_Demo = c()
 Win_Repu = c()
 
+#Split whole data by states
 for(i in seq_along(index)){
+#Gest sub_data for every states
   if(i<length(index)){
     sub_data = data[index[i]:(index[i+1]-1)]
   }else{
     sub_data = data[index[i]:length(data)]
   }
   
+  #Because some candidates don't have data for some states, we set boolean as True at beginning, and check at very end. 
+  #If we don't get data for state candidate in some state, we will set both delegate and percentage as 0.
   boolean_clinton = T
   boolean_trump = T
   boolean_sanders = T
@@ -55,17 +63,21 @@ for(i in seq_along(index)){
   boolean_demo = T
   boolean_repu = T
   
+  #Loop throught sub_data for every state
   for(i in seq_along(sub_data)){
+  #Get winner's name for Democratic
     if(sub_data[i] == "Democratic"){
       boolean_demo = F
       Win_Demo = append(Win_Demo, sub_data[i+1])
     }
-    
+  
+  #Get winner's name for Republican 
     if(sub_data[i] == "Republican"){
       boolean_repu = F
       Win_Repu = append(Win_Repu, sub_data[i+1])
     }
     
+  #Get percentage and delegate for Clinton  
     if(grepl("H. Clinton",sub_data[i])){
       boolean_clinton = F
       
@@ -79,7 +91,8 @@ for(i in seq_along(index)){
         Dele.Clinton = append(Dele.Clinton, 0)
       }
     }
-    
+  
+  #Get percentage and delegate for Trump  
     if(grepl("D. Trump",sub_data[i])){
       boolean_trump = F
       
@@ -93,7 +106,8 @@ for(i in seq_along(index)){
         Dele.Trump = append(Dele.Trump, 0)
       }
     }
-    
+  
+  #Get percentage and delegate for Sanders  
     if(grepl("B. Sanders",sub_data[i])){
       boolean_sanders = F
       
@@ -107,7 +121,8 @@ for(i in seq_along(index)){
         Dele.sanders = append(Dele.sanders, 0)
       }
     }
-    
+  
+  #Get percentage and delegate for Cruz    
     if(grepl("T. Cruz",sub_data[i])){
       boolean_cruz = F
       
@@ -121,7 +136,8 @@ for(i in seq_along(index)){
         Dele.Tcruz = append(Dele.Tcruz, 0)
       }
     }
-    
+  
+  #Get percentage and delegate for Kasich   
     if(grepl("J. Kasich",sub_data[i])){
       boolean_kasich = F
       
@@ -137,6 +153,7 @@ for(i in seq_along(index)){
     }
   }
   
+  #Check if we get the data of some candidate for some state. If not, we set delegate and persentage as 0
   if(boolean_clinton){
     H.Clinton = append(H.Clinton, 0)
     Dele.Clinton = append(Dele.Clinton, 0)
@@ -165,7 +182,7 @@ for(i in seq_along(index)){
   }
 }
 
-# putting scraped data together into one data frame
+#Create data frame df0, put all data
 df0 = data.frame(
   state = states,
   
@@ -190,29 +207,20 @@ df0 = data.frame(
   stringsAsFactors = F
 )
 
-# retrieve the states listed under 'map' function (different from those from politico
-# so we had to match in order to plot the map correctly)
+
 states = map("state", plot=FALSE, fill=TRUE)
 state.name = as.data.frame(states$names, stringsAsFactors = FALSE)
 colnames(state.name) = "state"
 
-# make all state names lower case
 df0[,1] = tolower(df0[,1])
 
-# merges politico scraped data (df0) with the exact states listed under the maps package
-# 'maps' required data from "63" states to plot a map, so we had to expand our scraped 
-# data to fit to 'maps' format
 df = left_join(state.name, df0, by="state")
 
-# truncate off sub-regions of states 
-# ie) michigan:north -> michigan; michigan:south -> michigan
 df$state2 = str_split(df$state, ":", 2)
 for(i in seq_along(df$state2)){
   df$state2[i] = df$state2[[i]][1]
 }
 
-# matching and merging scraped df0 with 'maps' requirements
-# ie) copy michigan data to both michigan:north and michigan:south
 for(i in seq_along(df$state2)){
   for(j in seq_along(df0$state)){
     if(df$state2[i] == df0$state[j]){
