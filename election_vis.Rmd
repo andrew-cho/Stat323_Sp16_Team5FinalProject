@@ -15,6 +15,29 @@ load("df0.Rdata")
 kable(head(df0))
 ```
 
+In order to match our dataset (df0) with the state outlines from the map package (statemapnames, which had multiple rows for one state), we joined the two datasets and made sure all parts of each state reflected the actual percentages of the state. For example, massachusetts has 3 rows in the dataset that comes from the map package (statemapnames):
+```{r}
+suppressMessages(library(knitr))
+load("statemapnames.Rdata")
+kable(statemapnames[20:22,])
+```
+But we only have 1 row in our dataset (df0):
+```{r}
+suppressMessages(library(knitr))
+load("df0.Rdata")
+kable(df0[21,])
+```
+
+So we merged the two datasets and put Massachusetts' data in all 3 rows of "Massachusetts" from the maps package to create our finished dataset, called "df":
+```{r}
+suppressMessages(library(knitr))
+load("df.Rdata")
+kable(df0[20:22,])
+```
+
+We then used this finished dataset in all subsequent mapping procedures.
+
+
 ### Part II- Make a Shiny Chloropleth Map
 The main output for this Shiny App is a chloropleth map of the United State. Users can first filter by parties, then select a candidate of interest. The map would display the percentage of support for that candidate in 2016 primary election by state. The darker the color, the higher the percentage of support. We also show the states in which the candidate won on top of the map. Finally, we include bar plots showing how many more delegates the candidates need in order to be nominated are also displayed. Because we choose the scrape the data from Politico's website, our App will automatically update its results whenever Politico updates.
 
