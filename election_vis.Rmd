@@ -8,7 +8,7 @@ runtime: shiny
 Our Shiny app displays the most recent election primaries results in a US State map. User can select a presidential candidate and view which states they have won and a chloropleth map that color-projects each candidate's popularity in each state. There is also an option to view the current delegate count for each of the political parties. 
 
 ### Part I - Scrape / Parse 
-We read this url, "http://www.politico.com/2016-election/results/map/president".  We used "Selector Gadget" to generate a minimal CSS selector to get five candidates' delegate and percentage data. Since we got a long vector, containing all data. We splited it by state and created a data frame df to store all data, including state names, delegate, percentage, winners' names.
+We read this url, "http://www.politico.com/2016-election/results/map/president".  We used "Selector Gadget" to generate a minimal CSS selector to get five candidates' delegate and percentage data. Since we got a long vector, containing all data. We splited it by state and created a data frame df0 to store all useful data, including state names, delegate, percentage, winners' names.
 ```{r}
 suppressMessages(library(knitr))
 load("df0.Rdata")
