@@ -207,4 +207,5 @@ for(i in seq_along(df$state2)){
   }
 }
 
+save(df0, file = "df0.Rdata")
 save(df, file = "df.Rdata")
