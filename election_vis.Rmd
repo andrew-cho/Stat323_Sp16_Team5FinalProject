@@ -34,7 +34,7 @@ suppressMessages(library(stringr))
 suppressMessages(library(maps))
 
 # load scraped data
-load("df.Rdata")
+load("df0.Rdata")
 
 ## dataframes for running barplot (democrats)
 dem = c(sum(df0$Dele_Clinton,na.rm = TRUE),sum(df0$Dele_Sanders,na.rm = TRUE))
