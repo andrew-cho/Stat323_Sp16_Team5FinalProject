@@ -95,7 +95,7 @@ shinyApp(
       uiOutput("candidate"), # output based on Party selection by user
       # toggle on/off plot of running delegate counts
       checkboxInput("yes_demdel", "Show Democratic Delegate Count", value = TRUE), 
-      checkboxInput("yes_repdel", "Show Republic Delegate Count", value = TRUE)
+      checkboxInput("yes_repdel", "Show Republican Delegate Count", value = TRUE)
     ),
     
     mainPanel(
