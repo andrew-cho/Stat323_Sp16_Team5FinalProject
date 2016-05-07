@@ -11,8 +11,8 @@ Our Shiny app displays the most recent election primaries results in a US State 
 
 ```{r}
 suppressMessages(library(knitr))
-load("df.Rdata")
-kable(head(df))
+load("df0.Rdata")
+kable(head(df0))
 ```
 
 ### Part II- Make a Shiny Chloropleth Map
@@ -35,6 +35,7 @@ suppressMessages(library(maps))
 
 # load scraped data
 load("df0.Rdata")
+load("df.Rdata")
 
 ## dataframes for running barplot (democrats)
 dem = c(sum(df0$Dele_Clinton,na.rm = TRUE),sum(df0$Dele_Sanders,na.rm = TRUE))
@@ -188,7 +189,6 @@ shinyApp(
       legend("bottomleft", col = "red", lwd = 2, lty = 2,
               legend = "*Delegates needed to win party nomination (2383)", bty = "n")
     })
-  },
   },
   options = list(height = 500)
 )
