@@ -11,10 +11,13 @@ url = "http://www.politico.com/2016-election/results/map/president"
 
 page = read_html(url)
 
+#Scrape names of all the states on the website.
 states = page %>% html_nodes(".timeline-header a") %>% html_text(trim = T)
 
+#Scrape data, including names of states, candidates' name, percentage, delegates.
 data = page %>% html_nodes("h5 , h6 , .number , .name-combo , .timeline-header a,.delegates-cell") %>% html_text(trim = T)
 
+#Because our data is a long vector, we use get_position function to find out the index
 get_position = function(x){
   result = which(data == x)
   return (result)
